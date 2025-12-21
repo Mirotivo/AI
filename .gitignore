@@ -1,0 +1,73 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment variables
+.env
+
+# Logs
+*.log
+logs/
+
+# Audio files
+*.wav
+*.mp3
+*.ogg
+temp/
+*.tmp
+
+# Large binary dependencies (downloaded by users)
+ffmpeg/
+ffmpeg.zip
+piper/
+piper.zip
+
+# Models (downloaded on first run)
+models/
+*.onnx
+*.onnx.json
+*.bin
+*.pt
+*.pth
+
+# OS
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+test_*.py
+validate.py
+
+# Docker volumes
+ollama-data/
+
+# Temporary Python files
+*.pyc
+.Python

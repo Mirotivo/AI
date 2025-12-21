@@ -1,0 +1,38 @@
+services:
+  voice-assistant:
+    build: .
+    container_name: offline-ai-assistant
+    environment:
+      # Load from .env file
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-llama3.2:3b}
+      - WHISPER_MODEL=${WHISPER_MODEL:-base}
+      - PIPER_VOICE=${PIPER_VOICE:-en_US-lessac-medium}
+      - WHISPER_DEVICE=${WHISPER_DEVICE:-cpu}
+      - OLLAMA_URL=${OLLAMA_URL:-http://localhost:11434}
+      - RECORD_SECONDS=${RECORD_SECONDS:-5}
+      - SAMPLE_RATE=${SAMPLE_RATE:-16000}
+      - CHANNELS=${CHANNELS:-1}
+      - SYSTEM_PROMPT=${SYSTEM_PROMPT:-You are a helpful AI assistant. Keep responses concise and natural.}
+      - CONTINUOUS_MODE=${CONTINUOUS_MODE:-false}
+      - TEXT_MODE=${TEXT_MODE:-false}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    volumes:
+      # Persist Ollama models
+      - ollama-data:/root/.ollama
+      # Mount audio devices
+      - /dev/snd:/dev/snd
+      # Optional: mount custom voices or models
+      - ./piper/voices:/app/piper/voices
+    devices:
+      # Audio device access
+      - /dev/snd:/dev/snd
+    ports:
+      - "11434:11434"
+    privileged: true
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+
+volumes:
+  ollama-data:
+    driver: local
