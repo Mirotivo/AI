@@ -34,6 +34,7 @@ class Config:
     CONTINUOUS_MODE = os.getenv('CONTINUOUS_MODE', 'false').lower() == 'true'
     TEXT_MODE = os.getenv('TEXT_MODE', 'false').lower() == 'true'
     USE_PYTHON_PIPER = os.getenv('USE_PYTHON_PIPER', 'true').lower() == 'true'
+    USE_VAD = os.getenv('USE_VAD', 'false').lower() == 'true'
     
     # Logging
     LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
@@ -70,6 +71,7 @@ class Config:
         print("\n🎤 Speech-to-Text (Whisper):")
         print(f"  Model:          {cls.WHISPER_MODEL}")
         print(f"  Device:         {cls.WHISPER_DEVICE}")
+        print(f"  VAD:            {cls.USE_VAD}")
         print("\n🔊 Text-to-Speech (Piper):")
         print(f"  Voice:          {cls.PIPER_VOICE}")
         print(f"  Python Mode:    {cls.USE_PYTHON_PIPER}")
