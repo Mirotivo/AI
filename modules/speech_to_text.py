@@ -1,33 +1,39 @@
-"""Speech-to-Text module using Whisper."""
+"""Speech-to-Text module using Faster Whisper."""
 
 import logging
+import queue
+import time
 import numpy as np
 import sounddevice as sd
 import soundfile as sf
-import whisper
 import torch
+from faster_whisper import WhisperModel
 
 logger = logging.getLogger(__name__)
 
 
 class SpeechToText:
-    """Handles speech-to-text conversion using Whisper."""
-    
+    """Handles speech-to-text conversion using Faster Whisper."""
+
     def __init__(self, model_name='base', device='cpu', use_vad=False):
         """
         Initialize Whisper model.
-        
+
         Args:
             model_name: Whisper model size (tiny, base, small, medium, large)
             device: Device to run on (cpu or cuda)
             use_vad: Enable Voice Activity Detection
         """
-        logger.info(f"Loading Whisper model: {model_name}")
+        logger.info(f"Loading Faster Whisper model: {model_name}")
         self.model_name = model_name
         self.device = device
-        self.model = whisper.load_model(model_name, device=device)
-        logger.info("Whisper model loaded successfully")
-        
+        # faster-whisper uses different device specification
+        compute_type = "int8" if device == "cpu" else "float16"
+        self.model = WhisperModel(
+            model_name, device=device, compute_type=compute_type
+        )
+        logger.info("Faster Whisper model loaded successfully")
+
         # Initialize VAD if enabled
         self.use_vad = use_vad
         self.vad_model = None
@@ -59,7 +65,7 @@ class SpeechToText:
         
         logger.info(f"Recording for {duration} seconds...")
         print(f"\n🎤 Listening for {duration} seconds...")
-        
+
         audio = sd.rec(
             int(duration * sample_rate),
             samplerate=sample_rate,
@@ -96,10 +102,6 @@ class SpeechToText:
         
         # Silero VAD requires exactly 512 samples for 16kHz
         samples_per_chunk = 512
-        
-        import time
-        import queue
-        
         # Use a queue to handle audio chunks from the stream
         audio_queue = queue.Queue()
         
@@ -145,8 +147,9 @@ class SpeechToText:
                         chunk_tensor = torch.from_numpy(chunk_array)
                         
                         # Detect speech using Silero VAD
-                        speech_prob = self.vad_model(chunk_tensor, sample_rate).item()
-                        
+                        speech_prob = self.vad_model(
+                            chunk_tensor, sample_rate
+                        ).item()
                         # Speech detection with better threshold
                         if speech_prob > 0.5:  # Higher confidence threshold
                             speech_detected = True
@@ -155,8 +158,9 @@ class SpeechToText:
                             # Print less frequently for cleaner output
                             if speech_chunks % 5 == 0:
                                 print("🟢", end="", flush=True)
-                        elif speech_detected and speech_chunks >= min_speech_chunks:
-                            # Only start counting silence after minimum speech detected
+                        elif (speech_detected and
+                              speech_chunks >= min_speech_chunks):
+                            # Only start counting silence after minimum speech
                             silence_chunks += 1
                             # Print less frequently for cleaner output
                             if silence_chunks % 5 == 0:
@@ -164,7 +168,9 @@ class SpeechToText:
                             
                             if silence_chunks >= silence_threshold:
                                 print()  # New line before the log message
-                                logger.info(f"Silence detected after speech, stopping...")
+                                logger.info(
+                                    "Silence detected after speech, stopping..."
+                                )
                                 break
                         else:
                             # Waiting for speech to start
@@ -231,14 +237,14 @@ class SpeechToText:
         
         print("💭 Transcribing...")
         
-        # Pass numpy array directly to Whisper (no file I/O needed!)
-        result = self.model.transcribe(
+        # faster-whisper returns segments and info
+        segments, info = self.model.transcribe(
             audio_array,
-            language=language,
-            fp16=False  # Use FP32 for CPU
+            language=language
         )
         
-        text = result['text'].strip()
+        # Combine all segments into full text
+        text = " ".join([segment.text for segment in segments]).strip()
         logger.info(f"Transcription: {text}")
         return text
     

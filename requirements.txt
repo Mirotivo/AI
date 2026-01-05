@@ -5,15 +5,17 @@ requests==2.31.0
 # Audio Processing
 sounddevice==0.4.6
 soundfile==0.12.1
-numpy==1.24.3
+numpy>=2.1.0
 pyaudio==0.2.14
 
 # Speech-to-Text (Whisper)
-openai-whisper==20231117
-torch==2.1.0
-torchaudio==2.1.0
+faster-whisper>=1.2.1
+torch==2.9.1
+torchaudio==2.9.1
 
 # Text-to-Speech (Piper)
+# Note: piper-tts requires piper-phonemize which needs manual installation
+# See: https://github.com/rhasspy/piper-phonemize
 piper-tts==1.2.0
 
 # Utilities
